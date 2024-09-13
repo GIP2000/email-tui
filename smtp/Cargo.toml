@@ -1,0 +1,10 @@
+[package]
+name = "smtp"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+openssl = "0.10.66"
+anyhow = "1.0.87"
+dotenv = "0.15.0"
+base64 = "0.22.1"

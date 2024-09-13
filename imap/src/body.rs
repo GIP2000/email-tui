@@ -1,5 +1,5 @@
 use anyhow::{bail, Context, Result};
-use std::{io::Read, str::FromStr};
+use std::str::FromStr;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct FileMeta {

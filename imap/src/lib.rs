@@ -142,9 +142,7 @@ impl IMap {
     }
 
     fn run_cmd(&mut self, cmd: &str) -> Result<()> {
-        let cmd = format!("{}\r\n", cmd);
-        let cmd = cmd.as_bytes();
-        self.stream.write_all(cmd)?;
+        write!(self.stream, "{}\r\n", cmd)?;
         self.stream.flush()?;
         return Ok(());
     }
@@ -188,7 +186,6 @@ mod test {
             imap.get_n_email_headers(range)
                 .expect("Couldn't get email headers"),
         );
-
         println!("{}", imap.read_email(60830).expect("Failed to find email"));
     }
 }
