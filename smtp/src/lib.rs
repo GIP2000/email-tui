@@ -1,4 +1,3 @@
-use ::base64::write;
 use anyhow::{bail, Context, Result};
 use std::{
     io::{BufRead, BufReader, Write},
