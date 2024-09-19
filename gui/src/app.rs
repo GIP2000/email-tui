@@ -99,6 +99,7 @@ impl App {
 
     fn put_body(&mut self) -> Result<()> {
         self.selected_body = self.messages.get_body(self.hovered_message).ok();
+        self.selected_message = Some(self.hovered_message);
         return Ok(());
     }
 
