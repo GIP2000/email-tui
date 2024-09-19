@@ -3,7 +3,7 @@ use anyhow::{Context, Result};
 use imap::IMap;
 use ratatui::{
     backend::CrosstermBackend,
-    crossterm::event::{self, KeyCode, KeyEventKind},
+    crossterm::event::{self, KeyCode, KeyEventKind, KeyModifiers},
     layout::{Constraint, Direction, Layout},
     style::{Style, Stylize},
     text::Text,
@@ -105,7 +105,11 @@ impl App {
 
     fn handle_key_press(&mut self) -> bool {
         if let Ok(event::Event::Key(key)) = event::read() {
-            if key.kind == KeyEventKind::Press && key.code == KeyCode::Char('q') {
+            if (key.kind == KeyEventKind::Press
+                && key.modifiers.intersects(KeyModifiers::CONTROL)
+                && key.code == KeyCode::Char('c'))
+                || key.code == KeyCode::Char('q')
+            {
                 return true;
             }
 
