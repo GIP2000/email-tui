@@ -268,6 +268,7 @@ impl BodyStructure {
         if !found {
             return None;
         }
+
         return Some(
             path.iter()
                 .map(|x| format!("{}", x))

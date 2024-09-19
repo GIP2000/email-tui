@@ -1,13 +1,13 @@
 use anyhow::{Context, Result};
 use std::str::FromStr;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Contact {
     name: Option<Box<str>>,
     email: Box<str>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Message {
     pub id: usize,
     pub subject: Box<str>,
@@ -44,7 +44,6 @@ impl FromStr for Message {
             .find_map(|word| word.parse().ok())
             .context("No ID found")?;
 
-        println!("{}", s);
         let read = s.contains("\\Seen");
 
         let (subject, from, to, cc, bcc) = s.lines().skip(1).fold(

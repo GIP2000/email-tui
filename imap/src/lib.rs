@@ -1,6 +1,6 @@
 mod body;
 mod inbox;
-mod message;
+pub mod message;
 
 use anyhow::{bail, Context, Result};
 use body::BodyStructure;
@@ -91,7 +91,6 @@ impl IMap {
     pub fn get_body_structure(&mut self, id: usize) -> Result<BodyStructure> {
         let cmd = format!("? FETCH {} (BODYSTRUCTURE)", id);
         let raw_bodystruct = self.execute_cmd(cmd.as_str())?;
-        println!("{}", raw_bodystruct);
         return raw_bodystruct.parse();
     }
 
