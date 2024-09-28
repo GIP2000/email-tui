@@ -1,4 +1,4 @@
-use anyhow::{Context, Result};
+use anyhow::Result;
 use imap::{message::Message, IMap};
 use std::ops::Range;
 
@@ -49,10 +49,11 @@ impl MessageCollection {
 
         let headers = self
             .imap
-            .get_n_email_headers((last_loaded - 1)..last_loaded - 19)?;
+            .get_n_email_headers((last_loaded - 1)..last_loaded - self.page_size - 1)?;
 
         self.messages.extend(headers.iter().rev().cloned());
 
+        eprintln!("range = {range:?} messages = {}", self.messages.len());
         assert!(range.end <= self.messages.len());
         return Ok(&self.messages[range]);
     }

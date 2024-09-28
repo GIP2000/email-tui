@@ -98,7 +98,13 @@ impl IMap {
         let body_structue = self.get_body_structure(id)?;
         let section = body_structue.find_text().context("No Text found")?;
         let cmd = format!("? FETCH {} BODY[{}]", id, section);
-        return self.execute_cmd(cmd.as_str());
+        let raw = self.execute_cmd(cmd.as_str())?;
+
+        let (_, b) = raw
+            .split_once('\n')
+            .context("Couldn't find message start")?;
+
+        return Ok(b.into());
     }
 
     fn read_response(&mut self) -> Result<Box<str>> {

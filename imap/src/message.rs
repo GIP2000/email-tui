@@ -1,10 +1,19 @@
 use anyhow::{Context, Result};
-use std::str::FromStr;
+use std::{fmt::Display, str::FromStr};
 
 #[derive(Debug, Clone)]
 pub struct Contact {
     name: Option<Box<str>>,
     email: Box<str>,
+}
+
+impl Display for Contact {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match &self.name {
+            Some(name) => write!(f, "{} ({})", name, self.email),
+            None => write!(f, "{}", self.email),
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -16,6 +25,41 @@ pub struct Message {
     pub cc: Option<Box<[Contact]>>,
     pub bcc: Option<Box<[Contact]>>,
     pub read: bool,
+}
+
+impl Display for Message {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "From: {}", self.from)?;
+
+        if let Some(to_list) = &self.to {
+            let to_str = to_list
+                .iter()
+                .map(|x| format!("{}", x))
+                .collect::<Vec<_>>()
+                .join(",");
+            writeln!(f, "To: {}", to_str)?;
+        }
+        if let Some(cc_list) = &self.cc {
+            let cc_str = cc_list
+                .iter()
+                .map(|x| format!("{}", x))
+                .collect::<Vec<_>>()
+                .join(",");
+            writeln!(f, "CC: {}", cc_str)?;
+        }
+        if let Some(bcc_list) = &self.bcc {
+            let bcc_str = bcc_list
+                .iter()
+                .map(|x| format!("{}", x))
+                .collect::<Vec<_>>()
+                .join(",");
+            writeln!(f, "BCC: {}", bcc_str)?;
+        }
+
+        writeln!(f, "Subject: {}", self.subject)?;
+
+        return Ok(());
+    }
 }
 
 impl FromStr for Contact {
