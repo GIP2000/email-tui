@@ -19,6 +19,14 @@ impl MessageCollection {
         };
     }
 
+    pub fn update_page_size(&mut self, h: usize, currently_hovered: usize) -> usize {
+        let current_idx = currently_hovered + (self.page_size * self.current_page);
+        self.page_size = h;
+        self.current_page = current_idx / self.page_size;
+        let new_current_idx = current_idx - (self.current_page * self.page_size);
+        return new_current_idx;
+    }
+
     fn get_range_from_page(&self) -> Range<usize> {
         let start = self.current_page * self.page_size;
         let end = start + self.page_size;
@@ -53,7 +61,6 @@ impl MessageCollection {
 
         self.messages.extend(headers.iter().rev().cloned());
 
-        eprintln!("range = {range:?} messages = {}", self.messages.len());
         assert!(range.end <= self.messages.len());
         return Ok(&self.messages[range]);
     }

@@ -43,10 +43,13 @@ impl App {
 
         imap.select_inbox(inbox)?;
 
-        let messages = MessageCollection::new(imap, 40);
+        let terminal = ratatui::init();
+        let height = terminal.size()?.height;
+
+        let messages = MessageCollection::new(imap, height.into());
 
         return Ok(Self {
-            terminal: ratatui::init(),
+            terminal,
             messages,
             hovered_message: 0,
             selected_message: None,
@@ -55,7 +58,7 @@ impl App {
         });
     }
 
-    pub fn render(&mut self) -> bool {
+    pub fn render(&mut self) -> Result<bool> {
         let mut exit = false;
 
         let draw_success = self.terminal.draw(|frame| {
@@ -96,11 +99,7 @@ impl App {
             exit = false;
         });
 
-        return (match draw_success {
-            Ok(_) => false,
-            Err(_) => true,
-        } || exit
-            || self.handle_key_press());
+        return Ok(draw_success.map(|_| false)? || exit || self.handle_key_press()?);
     }
 
     fn put_body(&mut self) -> Result<()> {
@@ -109,55 +108,65 @@ impl App {
         return Ok(());
     }
 
-    fn handle_key_press(&mut self) -> bool {
-        if let Ok(event::Event::Key(key)) = event::read() {
-            if key.kind == KeyEventKind::Press
-                && ((key.modifiers.intersects(KeyModifiers::CONTROL)
-                    && key.code == KeyCode::Char('c'))
-                    || key.code == KeyCode::Char('q'))
-            {
-                return true;
-            }
+    fn handle_key_press(&mut self) -> Result<bool> {
+        let a = event::read().unwrap();
+        return Ok(match a {
+            event::Event::Key(key) => {
+                if key.kind == KeyEventKind::Press
+                    && ((key.modifiers.intersects(KeyModifiers::CONTROL)
+                        && key.code == KeyCode::Char('c'))
+                        || key.code == KeyCode::Char('q'))
+                {
+                    return Ok(true);
+                }
 
-            if key.kind == KeyEventKind::Press && key.code == KeyCode::Enter {
-                let _ = self.put_body();
-            }
+                if key.kind == KeyEventKind::Press && key.code == KeyCode::Enter {
+                    let _ = self.put_body();
+                }
 
-            if key.kind == KeyEventKind::Press
-                && key.modifiers.intersects(KeyModifiers::CONTROL)
-                && key.code == KeyCode::Char('h')
-            {
-                self.left = true;
-            }
+                if key.kind == KeyEventKind::Press
+                    && key.modifiers.intersects(KeyModifiers::CONTROL)
+                    && key.code == KeyCode::Char('h')
+                {
+                    self.left = true;
+                }
 
-            if key.kind == KeyEventKind::Press
-                && key.modifiers.intersects(KeyModifiers::CONTROL)
-                && key.code == KeyCode::Char('l')
-            {
-                self.left = false;
-            }
+                if key.kind == KeyEventKind::Press
+                    && key.modifiers.intersects(KeyModifiers::CONTROL)
+                    && key.code == KeyCode::Char('l')
+                {
+                    self.left = false;
+                }
 
-            if key.kind == KeyEventKind::Press && key.code == KeyCode::Char('j') {
-                if self.left {
-                    if self.hovered_message < self.messages.page_size - 1 {
-                        self.hovered_message += 1;
-                    } else {
-                        self.messages.next_page();
-                        self.hovered_message = 0;
+                if key.kind == KeyEventKind::Press && key.code == KeyCode::Char('j') {
+                    if self.left {
+                        if self.hovered_message < self.messages.page_size - 1 {
+                            self.hovered_message += 1;
+                        } else {
+                            self.messages.next_page();
+                            self.hovered_message = 0;
+                        }
                     }
                 }
-            }
-            if key.kind == KeyEventKind::Press && key.code == KeyCode::Char('k') {
-                if self.left {
-                    if self.hovered_message > 0 {
-                        self.hovered_message -= 1;
-                    } else if self.messages.current_page > 0 {
-                        self.messages.prev_page();
-                        self.hovered_message = self.messages.page_size - 1;
+                if key.kind == KeyEventKind::Press && key.code == KeyCode::Char('k') {
+                    if self.left {
+                        if self.hovered_message > 0 {
+                            self.hovered_message -= 1;
+                        } else if self.messages.current_page > 0 {
+                            self.messages.prev_page();
+                            self.hovered_message = self.messages.page_size - 1;
+                        }
                     }
                 }
+                false
             }
-        }
-        return false;
+            event::Event::Resize(_, h) => {
+                self.hovered_message = self
+                    .messages
+                    .update_page_size(h as usize, self.hovered_message);
+                false
+            }
+            _ => false,
+        });
     }
 }
